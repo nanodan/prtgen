@@ -500,7 +500,30 @@
         BigButton:
             text: 'New Profile'
             on_release: self.proceed(root.parent.parent)
-    
+
+<ProcessScreen>:
+    BoxLayout:
+        id: process_layout
+        padding: 10
+        orientation: 'vertical'
+
+<FinalBox>:
+    orientation: 'horizontal'
+    padding: 15
+    spacing: 10
+    BigButton:
+        id: closebutton
+        size_hint: 0.3,0.5
+        text: 'Close App'
+        disabled: True
+        on_release: root.close()
+            
+<ProcessProgressBar>:
+
+<BorderLine>:
+    size_hint: None, 1
+    width: 4
+            
 <CoreLabel>:
     font_name: './helvetica.ttf'
     

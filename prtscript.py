@@ -6,11 +6,21 @@ import numpy as np
 import re
 from ast import literal_eval
 import sys
+import json
 
 def createPRTs(**kwargs):
     for key in kwargs:
         if key == 'experimentname_input':
             experimentName = kwargs[key]
+        elif key == 'path':
+            loaded_path = kwargs[key]
+        elif key == 'color_config_exists':
+            color_config_exists = kwargs[key]
+            print color_config_exists
+        elif key == 'colors_config':
+            colors_config = kwargs[key]
+        elif key == 'object_id':
+            parent_object = kwargs[key]
         elif key == 'duration_input':
             trialDuration = [int(kwargs[key])]
         elif key == 'jitterswitch':
@@ -82,7 +92,6 @@ def createPRTs(**kwargs):
         nullConditionName = 'Null'
 
     # =============================================================================
-    print CSVfiles
     modelSeparately = 'no'
     modelSeparatelyGroupNames = []
     
@@ -115,8 +124,11 @@ def createPRTs(**kwargs):
     dataframesGaps = []
     baselineTime = []
     totIter = len(CSVfiles)
+    currentIter = 0.0
+    parent_object.complete_label.text = 'Loading CSV Files'
 
     for file in CSVfiles:
+        currentIter += 1
         df = pd.read_csv(file)
         baselineTime.append(df[baselineOnsetColumnName][0])
         if gaps=='yes':
@@ -136,6 +148,9 @@ def createPRTs(**kwargs):
             jitterColumnName = 'jitter'
         
         dataframes.append(df)
+        ratio = currentIter/totIter * 100
+        parent_object.my_prbar.bar_value = ratio
+        
         
     for index,dataframe in enumerate(dataframes):
         dataframes[index][conditionColumnName].fillna(dataframe[trialColumnName],inplace=True)
@@ -152,21 +167,21 @@ def createPRTs(**kwargs):
     
     uniqueNames = {tName for tName in dataframes[0]['uniqueCombinedName']}
     uniqueNamesNoNull = {name for name in uniqueNames if nullConditionName.lower() not in name.lower()}
-
-    try:
-        colorFile = open('colorconfig.txt','r')
-        RGBCollection = {}
-        for row in colorFile:
-            line = row.split(';')
-            line = [x.strip(' ').strip('\n') for x in line]
-            RGBCollection[line[0]] = literal_eval(line[1])
-        colorFile.close()
+       
+    if color_config_exists:
+        RGBCollection = colors_config
+        print RGBCollection
         configExist = True
-    except:
+    else:
         configExist = False
 
     totIter = len(dataframes)
-
+    currentIter = 0.0
+    parent_object.complete_label.text = 'Creating PRT Files'
+    ratio = currentIter/totIter * 100
+    parent_object.my_prbar.bar_value = ratio
+    
+    
     uniqueConditionsMaster = []
     for dataindex,dataframe in enumerate(dataframes):
         uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
@@ -455,4 +470,20 @@ def createPRTs(**kwargs):
                 f.write('Color: ' + str(R) + ' ' + str(G) + ' ' + str(B))
                 f.write('\n')
                 
+        currentIter += 1
+        ratio = currentIter/totIter * 100
+        parent_object.my_prbar.bar_value = ratio
+                
         f.close()
+    
+    if not configExist:
+        f = open(loaded_path,'r')
+        dataJSON = json.load(f)
+        dataJSON['colors_config'] = RGBCollection
+        f.close()
+        f = open(loaded_path,'w')
+        f.write(json.dumps(dataJSON))
+        f.close()
+        
+    parent_object.complete_label.text = 'Done!'
+    parent_object.sub_box.ids.closebutton.disabled = False

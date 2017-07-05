@@ -12,6 +12,7 @@ Config.set('widgets','scroll_distance',100)
 Config.set('kivy','keyboard_mode','')
 Config.set('kivy','exit_on_escape','1')
 
+
 # main app import
 from kivy.app import App
 from kivy.atlas import Atlas
@@ -41,6 +42,8 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.filechooser import FileChooserIconView
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.progressbar import ProgressBar
+from progressbar import NewProgressBar
 
 from kivy.clock import Clock
 from kivy.graphics.instructions import InstructionGroup
@@ -68,6 +71,9 @@ import glob
 from os.path import join, isdir
 import sys
 import prtscript
+import threading
+# import thread
+
 # app class definitions
 # =============================================================================
 
@@ -236,6 +242,8 @@ class FilePopup(Popup):
     def load_data(self):
         if not self.pulldir:
             dataPath = self.ids.mainchooser.selection
+            global loaded_path
+            loaded_path = dataPath[0]
             f = open(dataPath[0],'r')
             dataJSON = json.load(f)
             self.screenchanger.current = 'ConfigScreen'
@@ -246,6 +254,9 @@ class FilePopup(Popup):
                 if 'switch' in key:
                     if key in dataJSON:
                         value.active = dataJSON[key]
+            for key in dataJSON:
+                if key == 'colors_config':
+                    self.screenchanger.config = dataJSON[key]
             self.dismiss()
         else:
             dataJSON = {}
@@ -255,6 +266,10 @@ class FilePopup(Popup):
                         dataJSON[key] = value.text
                 if 'switch' in key:
                     dataJSON[key] = value.active
+            try:
+                dataJSON['colors_config'] = self.screenchanger.config
+            except:
+                pass
             for key in dataJSON:
                 if key == 'onsetcolumn_input':
                     dataJSON[key] = dataJSON[key].split(',')
@@ -276,18 +291,63 @@ class FilePopup(Popup):
             dataPath = self.ids.mainchooser.selection[0]
             csvFiles = glob.glob(dataPath+'\\*.csv')
             dataJSON['csv_files'] = csvFiles
-            self.screenchanger.add_widget(ProcessScreen(name='ProcessScreen',config_parameters=dataJSON))
+            self.screenchanger.add_widget(ProcessScreen(name='ProcessScreen',config_parameters=dataJSON,scr_manager=self.screenchanger))
             self.screenchanger.current = 'ProcessScreen'
             self.dismiss()
+
+class ProcessProgressBar(NewProgressBar):
+    pass
             
 class ProcessScreen(Screen):
     def __init__(self,**kwargs):
+        global loaded_path
         super(ProcessScreen, self).__init__(**kwargs)
         for key in kwargs:
             if key == 'config_parameters':
                 self.config_parameters = kwargs[key]
+            if key == 'scr_manager':
+                scr_manager = kwargs[key]
+        try:
+            self.config_parameters['colors_config'] = scr_manager.config
+        except AttributeError:
+            pass
+            
+        if 'colors_config' not in self.config_parameters:
+            f = open(loaded_path,'r')
+            dataJSON = json.load(f)
+            dataJSON['colors_config'] = {}
+            f.close()
+            f = open(loaded_path,'w')
+            f.write(json.dumps(dataJSON))
+            f.close()
+            self.color_config_exists = False
+            self.config_parameters['color_config_exists'] = False
+        else:
+            self.color_config_exists = True
+            self.config_parameters['color_config_exists'] = True
+            
+        self.my_prbar = NewProgressBar(id='process_bar')
+        self.my_prbar.min = 0
+        self.my_prbar.max = 100
+        self.my_prbar.bar_value = 0
+        self.my_prbar.color = '#43d5e0'
+        
+        self.complete_label = Label(id='donelabel',color=(0.196,0.196,0.196,1),font_size=40,font='./helvetica.ttf')
+        self.ids.process_layout.add_widget(Label(text=''))
+        self.ids.process_layout.add_widget(self.complete_label)
+        self.ids.process_layout.add_widget(self.my_prbar)
+        self.sub_box = FinalBox()
+        self.ids.process_layout.add_widget(self.sub_box)
+        
+        self.config_parameters['path'] = loaded_path
     def on_enter(self):
-        prtscript.createPRTs(**self.config_parameters)
+        self.config_parameters['object_id'] = self
+        prt_thread = threading.Thread(target=prtscript.createPRTs,kwargs=self.config_parameters)
+        prt_thread.start()
+
+class FinalBox(BoxLayout):
+    def close(self):
+        App.get_running_app().stop()
         
 class BigButton(Button):
     def proceed(self, ScrnMgr):
