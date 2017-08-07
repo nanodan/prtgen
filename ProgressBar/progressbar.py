@@ -1,8 +1,6 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
-
-
 # New ProgressBar widget
 
 import kivy
@@ -14,8 +12,6 @@ from kivy.graphics import Color, Rectangle, Line
 from kivy.utils import get_color_from_hex
 from os.path import join, dirname, abspath
 
-
-
 Builder.load_file('progressbar.kv')
 
 class NewProgressBar(BoxLayout):
@@ -23,14 +19,14 @@ class NewProgressBar(BoxLayout):
 
     def __init__(self, **kwargs):
         super(NewProgressBar, self).__init__(**kwargs)
-        ## Get children
+        # Get children
         self.line_bar = self.children[1]
         self.start_border = self.children[2]
         self.finish_border = self.children[0]
-        ## Set redraw binds
+        # Set redraw binds
         self.bind(pos=self.redraw_widget)
         self.bind(size=self.redraw_widget)
-        ## Create variables
+        # Create variables
         self._background_color = '#222222'
 
     @property
@@ -49,7 +45,7 @@ class NewProgressBar(BoxLayout):
             self.line_bar.min = value
             self.line_bar.redraw_widget()
         else:
-            print("ERROR: min > max! Try again.")
+            print "ERROR: min > max! Try again."
 
     @property
     def max(self):
@@ -65,7 +61,7 @@ class NewProgressBar(BoxLayout):
         if value > self.line_bar.min:
             self.line_bar.max = value
         else:
-            print("ERROR: max < min! Try again.")
+            print "ERROR: max < min! Try again."
 
     @property
     def bar_value(self):
@@ -81,7 +77,7 @@ class NewProgressBar(BoxLayout):
         if self.min<=value<=self.max:
             self.bar_value_percent = self._convert_to_percent(value)
         else:
-            print('ERROR: value < min OR value > max. Try Again.')
+            print 'ERROR: value < min OR value > max. Try Again.'
 
     @property
     def bar_value_percent(self):
@@ -99,7 +95,7 @@ class NewProgressBar(BoxLayout):
             self.line_bar.bar_value_percent = value
             self.line_bar.redraw_widget()
         else:
-            print("ERROR: value < 0 OR value > 100. Try again.")
+            print "ERROR: value < 0 OR value > 100. Try again."
 
     @property 
     def color(self):
@@ -263,6 +259,7 @@ class ProgressLine(Widget):
 
     def redraw_widget(self, *args):
         """ Method of redraw this widget """
+        print 'POS_PERCENT:',self.bar_value_percent
         with self.canvas:
             self.canvas.clear()
             line_width = float(self.height)/2+1

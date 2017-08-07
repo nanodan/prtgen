@@ -1,17 +1,51 @@
+from __future__ import print_function
+
 # kivy imports
 # =============================================================================
+try:
+    # Python 2
+    import Tkinter
+except ImportError:
+    # Python 3
+    import tkinter
+
+try:
+    tkroot = Tkinter.Tk()
+except NameError:
+    tkroot = tkinter.Tk()
+    
+res_width = tkroot.winfo_screenwidth()
+res_height = tkroot.winfo_screenheight()
+tkroot.withdraw()
+tkroot.update()
+tkroot.destroy()
+if res_height <= 800:
+    window_type = 2
+    win_height = 600
+    win_width = 1000 
+else:
+    window_type = 1
+    win_height = 800
+    win_width = 1000
 
 # kivy config
 from kivy.config import Config
-# Config.set('graphics','resizable',0)
+Config.set('graphics','resizable',0)
 Config.set('graphics','position','custom')
-Config.set('graphics','top',100)
-Config.set('graphics','left',460)
+Config.set('graphics','top',(res_height-win_height)/2)
+Config.set('graphics','left',(res_width-win_width)/2)
 Config.set('widgets','scroll_timeout',55)
 Config.set('widgets','scroll_distance',100)
 Config.set('kivy','keyboard_mode','')
 Config.set('kivy','exit_on_escape','1')
+Config.set('graphics','width',1000)
+Config.set('graphics','height',win_height)
 
+from kivy.lang import Builder
+if window_type == 1:
+    Builder.load_file('./kv/window1.kv')
+else:
+    Builder.load_file('./kv/window2.kv')
 
 # main app import
 from kivy.app import App
@@ -43,8 +77,8 @@ from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.filechooser import FileChooserIconView
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.progressbar import ProgressBar
-from progressbar import NewProgressBar
 
+from progressbar import NewProgressBar
 from kivy.clock import Clock
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color
@@ -58,7 +92,6 @@ from kivy.core.window import Window
 from kivy.core.window import WindowBase
 from kivy.utils import get_color_from_hex
 
-Window.size = (1000,800)
 Window.clearcolor = get_color_from_hex('#FFFFFF')
 
 # python imports
@@ -72,7 +105,8 @@ from os.path import join, isdir
 import sys
 import prtscript
 import threading
-# import thread
+from desktop_file_dialogs import Desktop_FileDialog, FileGroup
+from desktop_file_dialogs import Desktop_FolderDialog
 
 # app class definitions
 # =============================================================================
@@ -88,6 +122,19 @@ class MainBox(BoxLayout):
     
 class ErrPop(Popup):
     pass
+    
+class TestButton(Button):
+    def on_release(self):
+        Desktop_FileDialog(
+            title             = "Select File",
+            initial_directory = "",
+            on_accept         = lambda file_path: print('>>>',file_path),
+            on_cancel         = lambda *args: None,
+            file_groups = [
+            FileGroup(name="Image Files", extensions=["jpg", "jpeg", "png", "gif"]),
+            FileGroup.All_FileTypes,
+            ],
+        ).show()
     
 class SavePop(Popup):
     def __init__(self,**kwargs):
@@ -159,10 +206,9 @@ class BasicInput(TextInput):
             self.tooltip.color = (0,0,0,1)
             self.tooltip.text = self.tooltiptext
             Clock.schedule_once(self.display_tooltip,2)
-            
+
         if not self.collide_point(*self.to_widget(*pos)):
             Clock.schedule_once(self.remove_tooltip,0)
-            
         if not self.collide_point(*self.to_widget(*pos)):
             Clock.schedule_once(self.remove_tooltip,0)
     def display_tooltip(self,*args):
@@ -177,7 +223,7 @@ class BasicInput(TextInput):
 class InputLabel(Label):
     pass
     
-class IntInput(TextInput): # only allow integers in text input field
+class IntInput(TextInput):
     pat = re.compile('[^0-9]')
     tooltipExists = NumericProperty(0)
     tooltiptext = StringProperty()
@@ -266,10 +312,12 @@ class FilePopup(Popup):
                         dataJSON[key] = value.text
                 if 'switch' in key:
                     dataJSON[key] = value.active
+                    
             try:
                 dataJSON['colors_config'] = self.screenchanger.config
             except:
                 pass
+                
             for key in dataJSON:
                 if key == 'onsetcolumn_input':
                     dataJSON[key] = dataJSON[key].split(',')
@@ -350,7 +398,7 @@ class FinalBox(BoxLayout):
         App.get_running_app().stop()
         
 class BigButton(Button):
-    def proceed(self, ScrnMgr):
+    def proceed_screen(self, ScrnMgr):
         ScrnMgr.current = 'ConfigScreen'
     def back(self, ScrnMgr):
         ScrnMgr.transition = SlideTransition(direction='right',duration=0.4)
@@ -359,20 +407,97 @@ class BigButton(Button):
         filepath = os.getcwd()
         tempPop = SavePop(parentval=self.parent.parent.parent.ids,path=filepath)
         tempPop.open()
-    def load_file(self):
+    def setattrs(self,filepath):
+        setattr(self,'file_path',filepath)
+        setattr(self,'proceed',True)
+    def load_file(self,ScrnMgr):
         filepath = os.getcwd()
-        ScrnMgr = self.parent.parent.parent.parent
-        filepop = FilePopup(path=filepath,manager=ScrnMgr)
-        filepop.title = 'Load Config File'
-        filepop.ids.mainchooser.dirselect = True
-        filepop.open()
-    def choose_dir(self):
+        fd = Desktop_FileDialog(
+            title = "Select Config File",
+            initial_directory = filepath,
+            on_accept = lambda file_path: self.setattrs(file_path),
+            on_cancel = lambda *args: setattr(BigButton,'proceed',False),
+            file_groups = [
+            FileGroup(name = "JSON Files", extensions = ["json"]),
+            FileGroup.All_FileTypes,
+            ],
+        )
+        fd.show()
+        if self.proceed:
+            for key,value in ScrnMgr.screens[1].ids.settab.ids.items():
+                if '_input' in key:
+                    value.text = ''
+                if 'switch' in key:
+                    value.active = False
+            self.pulldir = False
+            self.load_data(self.file_path,ScrnMgr)
+    def load_data(self,dataPath,ScrnMgr):
+        if not self.pulldir:
+            dataPath = dataPath
+            global loaded_path
+            loaded_path = dataPath
+            f = open(dataPath,'r')
+            dataJSON = json.load(f)
+            ScrnMgr.current = 'ConfigScreen'
+            for key,value in ScrnMgr.children[0].ids.settab.ids.items():
+                if '_input' in key:
+                    if key in dataJSON:
+                        value.text = dataJSON[key]
+                if 'switch' in key:
+                    if key in dataJSON:
+                        value.active = dataJSON[key]
+            for key in dataJSON:
+                if key == 'colors_config':
+                    ScrnMgr.config = dataJSON[key]
+        else:
+            dataJSON = {}
+            for key,value in ScrnMgr.children[0].ids.settab.ids.items():
+                if '_input' in key:
+                    if value.text:
+                        dataJSON[key] = value.text
+                if 'switch' in key:
+                    dataJSON[key] = value.active
+                    
+            try:
+                dataJSON['colors_config'] = ScrnMgr.config
+            except:
+                pass
+                
+            for key in dataJSON:
+                if key == 'onsetcolumn_input':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                elif key == 'parametricweights_input':
+                    dataJSON[key] = dataJSON[key].split('\n')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                    tempDict = {}
+                    for item in dataJSON[key]:
+                        valSplit = item.split(':')
+                        tempDict[valSplit[0]] = valSplit[1]
+                    dataJSON[key] = tempDict
+                elif key == 'error_input':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                elif key == 'gapcolnames_input':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+            dataPath = dataPath
+            csvFiles = glob.glob(dataPath+'/*.csv')
+            dataJSON['csv_files'] = csvFiles
+            ScrnMgr.add_widget(ProcessScreen(name='ProcessScreen',config_parameters=dataJSON,scr_manager=ScrnMgr))
+            ScrnMgr.current = 'ProcessScreen'
+    def choose_dir(self,ScrnMgr):
         filepath = os.getcwd()
-        ScrnMgr = self.parent.parent.parent.parent
-        filepop = FilePopup(path=filepath,pulldir=1,manager=ScrnMgr)
-        filepop.title = 'Choose csv Directory'
-        filepop.ids.mainchooser.dirselect = True
-        filepop.open()
+        fd =Desktop_FolderDialog(
+            title             = "Select Output Folder",
+            initial_directory = filepath,
+            on_accept = lambda file_path: self.setattrs(file_path),
+            on_cancel = lambda *args: setattr(BigButton,'proceed',False),
+        )
+        fd.show()
+        if self.proceed:
+            self.pulldir = True
+            self.load_data(self.file_path,ScrnMgr)
     
 class LoadScreen(Screen):
     def on_enter(self):
@@ -420,7 +545,5 @@ class PRTGEN(App):
     def build(self):
         return RootBox()
 
-# main app loop
-# =============================================================================
 if __name__ == '__main__':
     PRTGEN().run()

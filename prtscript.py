@@ -16,7 +16,6 @@ def createPRTs(**kwargs):
             loaded_path = kwargs[key]
         elif key == 'color_config_exists':
             color_config_exists = kwargs[key]
-            print color_config_exists
         elif key == 'colors_config':
             colors_config = kwargs[key]
         elif key == 'object_id':
@@ -170,7 +169,6 @@ def createPRTs(**kwargs):
        
     if color_config_exists:
         RGBCollection = colors_config
-        print RGBCollection
         configExist = True
     else:
         configExist = False

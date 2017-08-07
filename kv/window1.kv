@@ -437,7 +437,7 @@
                 on_release: self.save_config()
             BigButton:
                 text: 'Choose File Dir'
-                on_release: self.choose_dir()
+                on_release: self.choose_dir(root.parent)
     
 <BlackLabel>:
     color: [0.196,0.196,0.196,1]
@@ -496,10 +496,10 @@
         orientation: 'horizontal'
         BigButton:
             text: 'Load Config Files'
-            on_release: self.load_file()
+            on_release: self.load_file(root.parent.parent)
         BigButton:
             text: 'New Profile'
-            on_release: self.proceed(root.parent.parent)
+            on_release: self.proceed_screen(root.parent.parent)
 
 <ProcessScreen>:
     BoxLayout:
