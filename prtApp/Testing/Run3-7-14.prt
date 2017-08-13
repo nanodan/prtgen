@@ -1,0 +1,133 @@
+
+FileVersion:       2
+
+ResolutionOfTime:   msec
+
+Experiment:         <ApproxArith>
+
+BackgroundColor:    0 0 0
+TextColor:          255 255 255
+TimeCourseColor:    255 255 255
+TimeCourseThick:    3
+ReferenceFuncColor: 0 0 80
+ReferenceFuncThick: 3
+
+NrOfConditions:     11
+
+AAProc Approx_Small - Correct
+1
+
+439165 443065
+
+Color: 56 151 51
+
+AAColorProc ApproxColor_Small - Correct
+4
+
+286600 290500
+303091 307091
+323077 327127
+332644 336544
+
+Color: 202 145 243
+
+SAProc Sym_Small - Correct
+5
+
+36628 40678
+44723 48623
+54139 58189
+99229 103229
+106271 110171
+
+Color: 98 84 208
+
+Match Match
+2
+
+123146 126846
+232829 236529
+
+Color: 8 160 43
+
+AAColorProc ApproxColor_Large - Correct
+4
+
+259555 263455
+269574 273474
+278488 282488
+294026 298076
+
+Color: 189 202 203
+
+SAColorProc SymColor_Large - Correct
+5
+
+127160 131210
+150826 154726
+184811 188811
+195365 199265
+210869 214819
+
+Color: 232 129 12
+
+SAColorProc SymColor_Small - Correct
+5
+
+134252 138252
+142296 146296
+159774 163774
+167317 171217
+220369 224269
+
+Color: 255 217 17
+
+AAProc Approx_Large - Correct
+2
+
+384157 388207
+412205 416155
+
+Color: 7 157 63
+
+SAProc Sym_Large - Correct
+4
+
+19033 23033
+28081 32081
+69191 73241
+79795 83795
+
+Color: 70 121 206
+
+Add Add
+2
+
+15019 18719
+342093 345793
+
+Color: 55 143 255
+
+Errors
+18
+
+365107 369107
+375627 379627
+398758 402758
+420182 424082
+429097 433147
+236843 240843
+243366 247366
+62719 66669
+251477 255527
+312607 316557
+203794 207844
+174743 178793
+346107 350157
+354687 358587
+391231 395231
+405280 409180
+89312 93212
+112693 116593
+
+Color: 12 160 191
