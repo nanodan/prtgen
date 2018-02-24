@@ -11,8 +11,11 @@ except ImportError:
 
 try:
     tkroot = Tkinter.Tk()
-except NameError:
-    tkroot = tkinter.Tk()
+except:
+    try:
+        tkroot = tkinter.Tk()
+    except:
+        raise ImportError("TKinter can't be loaded")
     
 res_width = tkroot.winfo_screenwidth()
 res_height = tkroot.winfo_screenheight()
@@ -111,6 +114,9 @@ from desktop_file_dialogs import Desktop_FolderDialog
 # app class definitions
 # =============================================================================
 
+global config_loaded
+config_loaded = False
+
 def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='#'):
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
@@ -168,8 +174,11 @@ class SavePop(Popup):
                 if 'switch' in object_key:
                     configOut[object_key] = object_val.active
             jsonOut = json.dumps(configOut)
-            titleout = self.ids.jsonsavename.text        
-            f = open(titleout+'.json','w+')
+            titleout = self.ids.jsonsavename.text   
+            import os
+            f = open(os.path.join(dataPath, titleout+'.json'),'w+')
+            global loaded_path
+            loaded_path = os.path.join(dataPath, titleout+'.json')
             f.write(jsonOut)
             f.close()
             self.dismiss()
@@ -288,7 +297,8 @@ class FilePopup(Popup):
     def load_data(self):
         if not self.pulldir:
             dataPath = self.ids.mainchooser.selection
-            global loaded_path
+            global loaded_path, config_loaded
+            config_loaded = True
             loaded_path = dataPath[0]
             f = open(dataPath[0],'r')
             dataJSON = json.load(f)
@@ -334,6 +344,9 @@ class FilePopup(Popup):
                     dataJSON[key] = dataJSON[key].split(',')
                     dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
                 elif key == 'gapcolnames_input':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                elif key == 'grouping_input':
                     dataJSON[key] = dataJSON[key].split(',')
                     dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
             dataPath = self.ids.mainchooser.selection[0]
@@ -450,6 +463,7 @@ class BigButton(Button):
                 if key == 'colors_config':
                     ScrnMgr.config = dataJSON[key]
         else:
+            print('yes', self.file_path)
             dataJSON = {}
             for key,value in ScrnMgr.children[0].ids.settab.ids.items():
                 if '_input' in key:
@@ -473,7 +487,7 @@ class BigButton(Button):
                     tempDict = {}
                     for item in dataJSON[key]:
                         valSplit = item.split(':')
-                        tempDict[valSplit[0]] = valSplit[1]
+                        tempDict[str(valSplit[0])] = str(valSplit[1])
                     dataJSON[key] = tempDict
                 elif key == 'error_input':
                     dataJSON[key] = dataJSON[key].split(',')
@@ -481,9 +495,14 @@ class BigButton(Button):
                 elif key == 'gapcolnames_input':
                     dataJSON[key] = dataJSON[key].split(',')
                     dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                elif key == 'grouping_input':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
             dataPath = dataPath
             csvFiles = glob.glob(dataPath+'/*.csv')
             dataJSON['csv_files'] = csvFiles
+            print(dataJSON)
+            print(csvFiles)
             ScrnMgr.add_widget(ProcessScreen(name='ProcessScreen',config_parameters=dataJSON,scr_manager=ScrnMgr))
             ScrnMgr.current = 'ProcessScreen'
     def choose_dir(self,ScrnMgr):

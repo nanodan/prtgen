@@ -170,7 +170,7 @@
                     text: 'Trial/Volume Duration (ms)'
                 IntInput:
                     id: duration_input
-                    tooltiptext: 'Duration of volumes to model in milliseconds.  For example if you wish to model 3 seconds of brain activity after a stimulus presentation, enter 4000.'
+                    tooltiptext: 'Duration of volumes to model in milliseconds.  For example if you wish to model 3 seconds of brain activity after a stimulus presentation, enter 3000.'
                 PadLayout:
                     padding: 0
                     size_hint: 1, None
@@ -310,6 +310,9 @@
                             tooltiptext: 'Enter the name of the column which contains your stimuli'
                             disabled: True
                     Label:
+						size_hint: 1,None
+						height: 50
+					Label:
                         text_size: self.size
                         valign: 'top'
                         halign: 'justify'
@@ -409,8 +412,49 @@
                 Label:
                 Label:
                 Label:
-                Label:           
-
+                Label:
+    ButtonTab:
+        text: 'Grouping'
+        PadLayout:
+            orientation: 'horizontal'
+            PadLayout:
+                orientation:'vertical'
+                spacing: 0
+                InputLabel:
+                    text:'Grouping Keywords'
+                PadLayout:
+                    orientation: 'horizontal'
+                    InputLabel:
+                        size_hint: None,None
+                        width: 75
+                        halign: 'center'
+                        text_size: self.size
+                        text: 'Group Keywords'
+                    InputLabel:
+                        text: 'Keywords'
+                        text_size: self.size
+                        halign: 'center'
+                PadLayout:
+                    orientation: 'horizontal'
+                    InputSwitch:
+                        id: groupingswitch
+                        size_hint: None,None
+                        height: 50
+                        width: 75
+                        on_active: self.disable(target1=grouping_input,target2=groupingswitch)
+                    BasicInput:
+                        id: grouping_input
+                        tooltiptext: 'Enter a list of each of the keywords to be found in condition and trial column names that you want to use as the basis for grouping conditions together (separate with a comma)'
+                        disabled: True
+                Label:
+                Label:
+                Label:
+                Label:
+                Label:
+            PadLayout:
+                orientation:'vertical'
+                spacing: 0
+                
 <ButtonTab>:
     background_normal: 'atlas://defaulttheme/button'
     background_down: 'atlas://defaulttheme/button_pressed'
@@ -498,8 +542,6 @@
         BigButton:
             text: 'New Profile'
             on_release: self.proceed_screen(root.parent.parent)
-
-<TestButton>:
 
 <ProcessScreen>:
     BoxLayout:

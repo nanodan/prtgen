@@ -57,12 +57,14 @@ def createPRTs(**kwargs):
         elif key == 'parametricname_input':
             stimuliColumnName = kwargs[key]
         elif key == 'parametricweights_input':
-            stimuliweights = kwargs[key]
+            stimuliWeights = kwargs[key]
         elif key == 'errorswitch':
             if kwargs[key]:
                 modelErrorSeparately = 'yes'
             else:
                 modelErrorSeparately = 'no'
+        elif key == 'grouping_input':
+            groupingKeywords = kwargs[key]
         elif key == 'seperrorswitch':
             if kwargs[key]:
                 groupError = 'yes'
@@ -89,6 +91,11 @@ def createPRTs(**kwargs):
         
     if 'nullConditionName' not in locals():
         nullConditionName = 'Null'
+        
+    if 'groupingKeywords' not in locals():
+        doGrouping = False
+    else:
+        doGrouping = True
 
     # =============================================================================
     modelSeparately = 'no'
@@ -150,7 +157,6 @@ def createPRTs(**kwargs):
         ratio = currentIter/totIter * 100
         parent_object.my_prbar.bar_value = ratio
         
-        
     for index,dataframe in enumerate(dataframes):
         dataframes[index][conditionColumnName].fillna(dataframe[trialColumnName],inplace=True)
         if jitter == 'yes':
@@ -165,7 +171,32 @@ def createPRTs(**kwargs):
             dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),'uniqueCombinedName'] = dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),trialColumnName].astype(str) + ' ' + dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),conditionColumnName].astype(str)
     
     uniqueNames = {tName for tName in dataframes[0]['uniqueCombinedName']}
+    
+    replacementNames = {}
+    newNames = set()
+    if doGrouping:
+        for name in uniqueNames:
+            for tempNameGroup in groupingKeywords:
+                if tempNameGroup in name:
+                    replacementNames[name] = tempNameGroup
+                    newNames.add(tempNameGroup)
+                    break
+    
+    originalNames = set()
+    for name in uniqueNames:
+        if name not in replacementNames.keys():
+            originalNames.add(name)
+            
+    for dataindex,dataframe in enumerate(dataframes):
+        for key, value in replacementNames.iteritems():
+            mask = dataframe['uniqueCombinedName'] == key
+            dataframe.loc[mask, 'uniqueCombinedName'] = value
+            
+    uniqueNames = newNames.union(originalNames)
+    
     uniqueNamesNoNull = {name for name in uniqueNames if nullConditionName.lower() not in name.lower()}
+    if includeNull.lower() == 'no':
+        uniqueNames = uniqueNamesNoNull
        
     if color_config_exists:
         RGBCollection = colors_config
@@ -182,7 +213,7 @@ def createPRTs(**kwargs):
     
     uniqueConditionsMaster = []
     for dataindex,dataframe in enumerate(dataframes):
-        uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
+        #uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
         blockDataframes = []
         for key in uniqueNames:
             appBlock = False
@@ -209,8 +240,12 @@ def createPRTs(**kwargs):
             tempdf = tempdf.reset_index()
 
             for column in tempdf.columns:
-                if tempdf[column].isnull().any() and column != stimuliColumnName:
-                    tempdf = tempdf.drop(column,axis=1)
+                try:
+                    if tempdf[column].isnull().any() and column != stimuliColumnName:
+                        tempdf = tempdf.drop(column,axis=1)
+                except:
+                    if tempdf[column].isnull().any():
+                        tempdf = tempdf.drop(column,axis=1)
             tempdf = tempdf.reset_index(drop = True)
             for column in tempdf.columns:
                 if 'OnsetTime' in re.split('\.|\[',column):
@@ -319,6 +354,8 @@ def createPRTs(**kwargs):
         f.write('TimeCourseThick:    3\n')
         f.write('ReferenceFuncColor: 0 0 80\n')
         f.write('ReferenceFuncThick: 3\n\n')
+        if parametricDesign == 'yes':
+            f.write('ParametricWeights:  1\n\n')
         if includeNull.lower() == 'yes' and nullCondition.lower() == 'yes':
             f.write('NrOfConditions:     ' + str(condForPrint+addGap) + '\n')
         else:
@@ -356,7 +393,7 @@ def createPRTs(**kwargs):
            
             for cond in uniqueConditions:
                 if cond != nullConditionName:
-                    tempdf = block.loc[block[conditionColumnName] == cond]
+                    #tempdf = block.loc[block[conditionColumnName] == cond]
                     tempdf = block.loc[block['uniqueCombinedName'] == cond]
                     
                     if  dataindex==0 and not configExist:
@@ -365,12 +402,25 @@ def createPRTs(**kwargs):
                         B = randint(0,255)
                         RGB = (R,G,B)
                         
-                        while RGB in colorset:
-                            R = randint(0,255)
-                            G = randint(0,255)
-                            B = randint(0,255)
-                            RGB = (R,G,B)
-                        colorset.add(RGB)
+                        try:
+                            while RGB in colorset:
+                                R = randint(0,255)
+                                G = randint(0,255)
+                                B = randint(0,255)
+                                RGB = (R,G,B)
+                            colorset.add(RGB)
+                        except:
+                            colorset = set()
+                            colorset.add((255,255,255))
+                            colorset.add((0,0,0))
+                            colorset.add((0,0,80))
+                            while RGB in colorset:
+                                R = randint(0,255)
+                                G = randint(0,255)
+                                B = randint(0,255)
+                                RGB = (R,G,B)
+                            colorset.add(RGB)
+                            
                         if 'NoneCorr' not in block['uniqueCombinedName'][0]:
                             RGBCollection[block['uniqueCombinedName'][0]] = RGB
                         else:
@@ -389,12 +439,27 @@ def createPRTs(**kwargs):
                                 B = RGB[2]
                         except KeyError:
                             RGB = (randint(0,255),randint(0,255),randint(0,255))
-                            while RGB in colorset:
-                                R = randint(0,255)
-                                G = randint(0,255)
-                                B = randint(0,255)
-                                RGB = (R,G,B)
-                            colorset.add(RGB)
+                            R = RGB[0]
+                            G = RGB[1]
+                            B = RGB[2]
+                            try:
+                                while RGB in colorset:
+                                    R = randint(0,255)
+                                    G = randint(0,255)
+                                    B = randint(0,255)
+                                    RGB = (R,G,B)
+                                colorset.add(RGB)
+                            except:
+                                colorset = set()
+                                colorset.add((255,255,255))
+                                colorset.add((0,0,0))
+                                colorset.add((0,0,80))
+                                while RGB in colorset:
+                                    R = randint(0,255)
+                                    G = randint(0,255)
+                                    B = randint(0,255)
+                                    RGB = (R,G,B)
+                                colorset.add(RGB)
                             if 'NoneCorr' not in block['uniqueCombinedName'][0]:
                                 RGBCollection[block['uniqueCombinedName'][0]] = RGB
                             else:
@@ -419,7 +484,13 @@ def createPRTs(**kwargs):
                             outputOffset = int(outputOnset + trialDuration[0])
 
                             if parametricDesign == 'yes' and modelSeparately == 'no':
-                                f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + stimuliWeights[str(row[stimuliColumnName])] + '\n')
+                                try:
+                                    f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + stimuliWeights[str(row[stimuliColumnName])] + '\n')
+                                except KeyError:
+                                    try:
+                                        f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + stimuliWeights[str(int(row[stimuliColumnName]))] + '\n')
+                                    except KeyError:
+                                        raise ValueError("Stimuli weighting does not exist")
                             else:
                                 f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + '\n')
                         else:

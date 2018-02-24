@@ -1,7 +1,7 @@
 <FilePopup>:
     auto_dismiss: False
     size_hint: None,None
-    size: 1000,800
+    size: 1000,600
     BoxLayout:
         orientation: 'vertical'
         spacing: 10
@@ -45,7 +45,7 @@
     title: 'Save Config'
     auto_dismiss: False
     size_hint: None, None
-    size: 1000,800
+    size: 1000,600
     BoxLayout:
         orientation: 'vertical'
         spacing: 10
@@ -53,7 +53,7 @@
         Label:
             text: 'Choose Directory to Save Config File'
             size_hint: 1,0.1
-            font_size: 30
+            font_size: 40
             text_size: self.size
             halign: 'left'
         Label:
@@ -72,7 +72,7 @@
         Label:
             text: 'File Name:'
             size_hint: 1,0.1
-            font_size: 30
+            font_size: 40
             text_size: self.size
             halign: 'left'
         TextInput:
@@ -81,7 +81,7 @@
             multiline: False
             font_size: 28
             size_hint: 1, None
-            height: 50
+            height: 40
             write_tab: False
             padding: [5, ( self.height - self.line_height ) / 2]
         BoxLayout:
@@ -110,22 +110,22 @@
     
 <PadLayout>:
     padding: 15
-    spacing: 10
+    spacing: 5
 
 <LoadScreen>:
     MainBox:
     
 <ButtonUp>:
     size_hint: None, None
-    height: 50
-    width: 50
+    height: 40
+    width: 40
     font_size: 40
     font_name: './helvetica.ttf'
 
 <ButtonDown>:
     size_hint: None, None
-    height: 50
-    width: 50
+    height: 40
+    width: 40
     font_size: 40
     font_name: './helvetica.ttf'
     
@@ -133,24 +133,24 @@
     multiline: False
     font_size: 28
     size_hint: 1, None
-    height: 50
+    height: 40
     padding: [5, ( self.height - self.line_height ) / 2]
     
 <BasicInput>:
     multiline: False
     font_size: 28
     size_hint: 1, None
-    height: 50
+    height: 40
     write_tab: False
     padding: [5, ( self.height - self.line_height ) / 2]
     
 <InputLabel>:
     size_hint: 1, None
-    height: 50
+    height: 40
     
 <InputSwitch>:
     size_hint: 1, None
-    height: 50
+    height: 40
     
 <SettingsTab>:
     do_default_tab: False
@@ -174,7 +174,7 @@
                 PadLayout:
                     padding: 0
                     size_hint: 1, None
-                    height: 50
+                    height: 40
                     orientation: 'horizontal'
                     InputLabel:
                         size_hint: None,None
@@ -188,13 +188,13 @@
                         text: 'Jitter Column Name'
                 PadLayout:
                     size_hint: 1, None
-                    height: 50
+                    height: 40
                     padding: 0
                     orientation: 'horizontal'
                     InputSwitch:
                         id: jitterswitch
                         size_hint: None,None
-                        height: 50
+                        height: 40
                         width: 75
                         on_active: self.disable(target1=jittername_input)
                     BasicInput:
@@ -204,7 +204,7 @@
                 PadLayout:
                     padding: 0
                     size_hint: 1, None
-                    height: 50
+                    height: 40
                     orientation: 'horizontal'
                     InputLabel:
                         size_hint: None,None
@@ -225,21 +225,21 @@
                         text: 'Null Condition Name'
                 PadLayout:
                     size_hint: 1, None
-                    height: 50
+                    height: 40
                     padding: 0
                     orientation: 'horizontal'
                     InputSwitch:
                         id: nullcondswitch
                         size_hint: None,None
-                        height: 50
-                        width: 75
+                        height: 40
+                        width: 80
                         on_active: self.disable(target1=nullname_input,target2=nullswitch)
                     InputSwitch:
                         id: nullswitch
                         disabled: True
                         size_hint: None,None
-                        height: 50
-                        width: 75
+                        height: 40
+                        width: 80
                     BasicInput:
                         id: nullname_input
                         tooltiptext: 'If you have a null condition and wish to exclude it from your analysis, enter the name of that condition as it appears in your condition/trial column, and set the \'Include Null\' slider to \'OFF\''
@@ -281,7 +281,7 @@
                     PadLayout:
                         padding: 0
                         size_hint: 1, None
-                        height: 50
+                        height: 40
                         orientation: 'horizontal'
                         InputLabel:
                             size_hint: None,None
@@ -296,13 +296,13 @@
                             text: 'Parametric Stimuli Column Name'
                     PadLayout:
                         size_hint: 1, None
-                        height: 50
+                        height: 40
                         padding: 0
                         orientation: 'horizontal'
                         InputSwitch:
                             id: parametricswitch
                             size_hint: None,None
-                            height: 50
+                            height: 40
                             width: 75
                             on_active: self.disable(target1=parametricname_input,target2=parametricweights_input)
                         BasicInput:
@@ -310,13 +310,10 @@
                             tooltiptext: 'Enter the name of the column which contains your stimuli'
                             disabled: True
                     Label:
-                        size_hint: 1,None
-                        height: 50
-                    Label:
                         text_size: self.size
                         valign: 'top'
                         halign: 'justify'
-						font_size: 12
+                        font_size: 12
                         text: 'Parametric designs are used when the data is expected to follow a particular slope or graduated pattern. For example, parametric designs are used to model adaptation effects where a stimulus dimension is expected to modulate neural activation recovery. To model a slope pattern, the user assigns weights to stimuli when creating the PRT file. The obtained data is compared to the expected data pattern. Brain regions that follow the predicted parametric pattern will be identified.\n\n Enter the stimuli labels and their associated weights in the box on the right, with one pair per line, separated by a colon, with the stimuli on the left, and the weight on the right, such as:\n\nA:0\nB:1\nC:2'
                 PadLayout:
                     orientation: 'vertical'
@@ -353,7 +350,7 @@
                     InputSwitch:
                         id: errorswitch
                         size_hint: None,None
-                        height: 50
+                        height: 40
                         width: 75
                         on_active: self.disable(target1=error_input,target2=seperrorswitch)
                     BasicInput:
@@ -394,7 +391,7 @@
                     InputSwitch:
                         id: gapswitch
                         size_hint: None,None
-                        height: 50
+                        height: 40
                         width: 75
                         on_active: self.disable(target1=gapname_input,target2=gapcolnames_input)
                     BasicInput:
@@ -412,7 +409,7 @@
                 Label:
                 Label:
                 Label:
-                Label:
+                Label:           
     ButtonTab:
         text: 'Grouping'
         PadLayout:
@@ -454,8 +451,7 @@
             PadLayout:
                 orientation:'vertical'
                 spacing: 0
-                              
-
+                
 <ButtonTab>:
     background_normal: 'atlas://defaulttheme/button'
     background_down: 'atlas://defaulttheme/button_pressed'
@@ -484,7 +480,7 @@
     
 <BlackLabel>:
     color: [0.196,0.196,0.196,1]
-    font_size: 30
+    font_size: 40
     text_size: self.size
     halign: 'left'
     font_name: './helvetica.ttf'
@@ -543,6 +539,8 @@
         BigButton:
             text: 'New Profile'
             on_release: self.proceed_screen(root.parent.parent)
+
+<TestButton>:
 
 <ProcessScreen>:
     BoxLayout:

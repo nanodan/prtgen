@@ -316,7 +316,6 @@
                         text_size: self.size
                         valign: 'top'
                         halign: 'justify'
-						font_size: 12
                         text: 'Parametric designs are used when the data is expected to follow a particular slope or graduated pattern. For example, parametric designs are used to model adaptation effects where a stimulus dimension is expected to modulate neural activation recovery. To model a slope pattern, the user assigns weights to stimuli when creating the PRT file. The obtained data is compared to the expected data pattern. Brain regions that follow the predicted parametric pattern will be identified.\n\n Enter the stimuli labels and their associated weights in the box on the right, with one pair per line, separated by a colon, with the stimuli on the left, and the weight on the right, such as:\n\nA:0\nB:1\nC:2'
                 PadLayout:
                     orientation: 'vertical'
@@ -412,7 +411,7 @@
                 Label:
                 Label:
                 Label:
-                Label:
+                Label:    
     ButtonTab:
         text: 'Grouping'
         PadLayout:
