@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-# kivy imports
+# Kivy Imports
 # =============================================================================
 try:
     # Python 2
@@ -22,45 +22,30 @@ res_height = tkroot.winfo_screenheight()
 tkroot.withdraw()
 tkroot.update()
 tkroot.destroy()
-if res_height <= 800:
-    window_type = 2
-    win_height = 600
-    win_width = 1000 
-else:
-    window_type = 1
-    win_height = 800
-    win_width = 1000
 
-# kivy config
+win_height = 800
+win_width = 1000
+
 from kivy.config import Config
-Config.set('graphics','resizable',0)
-Config.set('graphics','position','custom')
-Config.set('graphics','top',(res_height-win_height)/2)
-Config.set('graphics','left',(res_width-win_width)/2)
-Config.set('widgets','scroll_timeout',55)
-Config.set('widgets','scroll_distance',100)
-Config.set('kivy','keyboard_mode','')
-Config.set('kivy','exit_on_escape','1')
-Config.set('graphics','width',1000)
-Config.set('graphics','height',win_height)
+Config.set('graphics', 'resizable', 0)
+Config.set('graphics', 'position', 'custom')
+Config.set('graphics', 'top', (res_height - win_height)/2)
+Config.set('graphics', 'left', (res_width - win_width)/2)
+Config.set('widgets', 'scroll_timeout', 55)
+Config.set('widgets', 'scroll_distance', 100)
+Config.set('kivy', 'keyboard_mode', '')
+Config.set('kivy', 'exit_on_escape', '1')
+Config.set('graphics', 'width', win_width)
+Config.set('graphics', 'height', win_height)
 
 from kivy.lang import Builder
-if window_type == 1:
-    Builder.load_file('./kv/window1.kv')
-else:
-    Builder.load_file('./kv/window2.kv')
+Builder.load_file('./kv/window.kv')
 
-# main app import
 from kivy.app import App
-from kivy.atlas import Atlas
 
-# properties import
 from kivy.properties import (StringProperty, NumericProperty)
 
-# screens import
 from kivy.uix.screenmanager import (ScreenManager, Screen, SlideTransition)
-
-# widgets import
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
 from kivy.uix.label import Label
@@ -80,6 +65,7 @@ from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.filechooser import FileChooserIconView
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.progressbar import ProgressBar
+from kivy.uix.textinput import TextInput
 
 from progressbar import NewProgressBar
 from kivy.clock import Clock
@@ -87,17 +73,12 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color
 from kivy.graphics import Rectangle
 
-# user input import
-from kivy.uix.textinput import TextInput
-
-# window settings import
 from kivy.core.window import Window
 from kivy.core.window import WindowBase
 from kivy.utils import get_color_from_hex
 
 Window.clearcolor = get_color_from_hex('#FFFFFF')
 
-# python imports
 import os
 import re
 import time
@@ -111,7 +92,7 @@ import threading
 from desktop_file_dialogs import Desktop_FileDialog, FileGroup
 from desktop_file_dialogs import Desktop_FolderDialog
 
-# app class definitions
+# Application
 # =============================================================================
 
 global config_loaded
@@ -129,24 +110,11 @@ class MainBox(BoxLayout):
 class ErrPop(Popup):
     pass
     
-class TestButton(Button):
-    def on_release(self):
-        Desktop_FileDialog(
-            title             = "Select File",
-            initial_directory = "",
-            on_accept         = lambda file_path: print('>>>',file_path),
-            on_cancel         = lambda *args: None,
-            file_groups = [
-            FileGroup(name="Image Files", extensions=["jpg", "jpeg", "png", "gif"]),
-            FileGroup.All_FileTypes,
-            ],
-        ).show()
-    
 class SavePop(Popup):
-    def __init__(self,**kwargs):
-        super(SavePop,self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        super(SavePop, self).__init__(**kwargs)
         for key in kwargs:
-            if key=='parentval':
+            if key == 'parentval':
                 self.root = kwargs[key]
             if key == 'path':
                 self.ids.mainchooser.path = kwargs[key]
@@ -160,12 +128,15 @@ class SavePop(Popup):
         except IndexError:
             pass
     def save_data(self):
+        global loaded_path
+        
         if not self.ids.jsonsavename.text:
             tempPop = ErrPop()
             tempPop.open()
         else:
             configOut = {}
             dataPath = self.ids.mainchooser.path
+            
             for object_key, object_val in self.root['settab'].ids.items():
                 if 'input' in object_key:
                     if object_val.text:
@@ -173,12 +144,11 @@ class SavePop(Popup):
                         configOut[object_key] = outputText
                 if 'switch' in object_key:
                     configOut[object_key] = object_val.active
+            
             jsonOut = json.dumps(configOut)
             titleout = self.ids.jsonsavename.text   
-            import os
-            f = open(os.path.join(dataPath, titleout+'.json'),'w+')
-            global loaded_path
-            loaded_path = os.path.join(dataPath, titleout+'.json')
+            f = open(os.path.join(dataPath, titleout + '.json'),'w+')
+            loaded_path = os.path.join(dataPath, titleout + '.json')
             f.write(jsonOut)
             f.close()
             self.dismiss()
@@ -195,11 +165,11 @@ class Tooltip(Label):
 class BasicInput(TextInput):
     tooltipExists = NumericProperty(0)
     tooltiptext = StringProperty()
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         Window.bind(mouse_pos=self.on_mouse_pos)
-        super(BasicInput,self).__init__(**kwargs)
+        super(BasicInput, self).__init__(**kwargs)
     def on_text(self, *args):
-        Clock.schedule_once(self.remove_tooltip,0)
+        Clock.schedule_once(self.remove_tooltip, 0)
     def on_mouse_pos(self, *args):
         if not self.get_root_window():
             return
@@ -207,23 +177,23 @@ class BasicInput(TextInput):
         Clock.unschedule(self.display_tooltip)
         if self.collide_point(*self.to_widget(*pos)):
             self.tooltip = Tooltip(text='')
-            if pos[0]+300<1000:
+            if pos[0] + 300 < 1000:
                 self.tooltip.x = pos[0]
             else:
                 self.tooltip.x = pos[0] - 300
             self.tooltip.y = pos[1]
-            self.tooltip.color = (0,0,0,1)
+            self.tooltip.color = (0, 0, 0, 1)
             self.tooltip.text = self.tooltiptext
-            Clock.schedule_once(self.display_tooltip,2)
+            Clock.schedule_once(self.display_tooltip, 1.5)
 
         if not self.collide_point(*self.to_widget(*pos)):
-            Clock.schedule_once(self.remove_tooltip,0)
+            Clock.schedule_once(self.remove_tooltip, 0)
         if not self.collide_point(*self.to_widget(*pos)):
-            Clock.schedule_once(self.remove_tooltip,0)
+            Clock.schedule_once(self.remove_tooltip, 0)
     def display_tooltip(self,*args):
         Window.add_widget(self.tooltip)
         self.tooltipExists = 1
-    def remove_tooltip(self,*args):
+    def remove_tooltip(self, *args):
         if self.tooltipExists == 1:
             for item in Window.children:
                 if 'Tooltip' in str(item):

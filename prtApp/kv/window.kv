@@ -96,14 +96,14 @@
                 on_release: root.save_data()
 
 <Tooltip>:
-    size_hint: 0.3,None
-    text_size: self.width-10, None
-    height: self.texture_size[1]+10
+    size_hint: 0.3, None
+    text_size: self.width - 10, None
+    height: self.texture_size[1] + 10
     halign: 'center'
     valign: 'middle'
     canvas.before:
         Color:
-            rgba: 0.8,0.8,0.8,0.9
+            rgba: 0.8, 0.8, 0.8, 0.9
         Rectangle:
             size: self.size
             pos: self.pos
@@ -310,6 +310,9 @@
                             tooltiptext: 'Enter the name of the column which contains your stimuli'
                             disabled: True
                     Label:
+						size_hint: 1,None
+						height: 50
+					Label:
                         text_size: self.size
                         valign: 'top'
                         halign: 'justify'
@@ -409,7 +412,7 @@
                 Label:
                 Label:
                 Label:
-                Label:           
+                Label:
     ButtonTab:
         text: 'Grouping'
         PadLayout:
@@ -459,6 +462,7 @@
 <ConfigScreen>:
     PadLayout:
         orientation: 'vertical'
+        spacing: 10
         SettingsTab:
             id: settab
         BoxLayout:
@@ -468,14 +472,14 @@
             orientation: 'horizontal'
             BigButton:
                 size_hint: None, 1
-                width: 100
+                width: 115
                 on_release: self.back(root.parent)
                 text: 'Back'
             BigButton:
-                text: 'Save Config'
+                text: 'Save Configuration'
                 on_release: self.save_config()
             BigButton:
-                text: 'Choose File Dir'
+                text: 'Output Directory'
                 on_release: self.choose_dir(root.parent)
     
 <BlackLabel>:
@@ -539,8 +543,6 @@
         BigButton:
             text: 'New Profile'
             on_release: self.proceed_screen(root.parent.parent)
-
-<TestButton>:
 
 <ProcessScreen>:
     BoxLayout:
