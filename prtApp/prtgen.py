@@ -93,8 +93,9 @@ from desktop_file_dialogs import Desktop_FileDialog, FileGroup
 # Application
 # =============================================================================
 
-global config_loaded
+global config_loaded, loaded_path
 config_loaded = False
+loaded_path = None
 
 def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='#'):
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
@@ -388,10 +389,10 @@ class BigButton(Button):
         filepath = os.getcwd()
         tempPop = SavePop(parentval=self.parent.parent.parent.ids, path=filepath)
         tempPop.open()
-    def setattrs(self,filepath):
+    def setattrs(self, filepath):
         setattr(self, 'file_path', filepath)
         setattr(self, 'proceed', True)
-    def load_file(self,ScrnMgr):
+    def load_file(self, ScrnMgr):
         filepath = os.getcwd()
         fd = Desktop_FileDialog(
             title = "Select Config File",

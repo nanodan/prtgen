@@ -100,24 +100,15 @@ def createPRTs(**kwargs):
     # =============================================================================
     modelSeparately = 'no'
     modelSeparatelyGroupNames = []
-    
-    if 'stimuliWeights' in locals():
-        stimuliWeights['none'] = ''
-    else:
-        stimuliWeights = {}
-        stimuliWeights['none'] = ''
+        
+    columns = [conditionColumnName, trialColumnName, errorColumnName, onsetTimeNames]    
     if parametricDesign == 'yes':
-        if jitter == 'yes':
-            columns = [conditionColumnName,stimuliColumnName,trialColumnName,jitterColumnName] + errorColumnName
-        else:
-            columns = [conditionColumnName,stimuliColumnName,trialColumnName] + errorColumnName
+        columns += [stimuliColumnName]
+        stimuliWeights['none'] = ''
     else:
-        if jitter == 'yes':
-            columns = [conditionColumnName,trialColumnName,jitterColumnName] + errorColumnName
-        else:
-            columns = [conditionColumnName,trialColumnName] + errorColumnName
-
-    columns.extend(onsetTimeNames)
+        stimuliWeights = {'none': ''}
+    if jitter == 'yes':
+        columns += [jitterColumnName]
 
     if gaps == 'yes':
         addGap = 1
@@ -137,20 +128,20 @@ def createPRTs(**kwargs):
         currentIter += 1
         df = pd.read_csv(file)
         baselineTime.append(df[baselineOnsetColumnName][0])
-        if gaps=='yes':
+        if gaps == 'yes':
             dfgaps = df.copy()
             for column in dfgaps.columns:
                 if column not in gapColumns:
-                    dfgaps = dfgaps.drop(column,axis=1)
-                    dfgaps = dfgaps.reset_index(drop = True)
+                    dfgaps = dfgaps.drop(column, axis=1)
+                    dfgaps = dfgaps.reset_index(drop=True)
             dataframesGaps.append(dfgaps)
         for column in df.columns:
             if column not in columns:
-                df = df.drop(column,axis=1)
-                df = df.reset_index(drop = True)
-        df = df.reset_index(drop = True)
+                df = df.drop(column, axis=1)
+                df = df.reset_index(drop=True)
+        df = df.reset_index(drop=True)
         if jitter == 'no':
-            df['jitter'] = pd.Series(0,index=df.index)
+            df['jitter'] = pd.Series(0, index=df.index)
             jitterColumnName = 'jitter'
         
         dataframes.append(df)
@@ -357,9 +348,9 @@ def createPRTs(**kwargs):
         if parametricDesign == 'yes':
             f.write('ParametricWeights:  1\n\n')
         if includeNull.lower() == 'yes' and nullCondition.lower() == 'yes':
-            f.write('NrOfConditions:     ' + str(condForPrint+addGap) + '\n')
+            f.write('NrOfConditions:     ' + str(condForPrint + addGap) + '\n')
         else:
-            f.write('NrOfConditions:     ' + str(condForPrintNoNull+addGap) + '\n')
+            f.write('NrOfConditions:     ' + str(condForPrintNoNull + addGap) + '\n')
         
         if gaps == 'yes':
             f.write('\n')
