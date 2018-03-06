@@ -1,12 +1,12 @@
-import pandas as pd
 import os
-from glob import glob
-from random import randint
-import numpy as np
 import re
-from ast import literal_eval
 import sys
 import json
+import numpy as np
+import pandas as pd
+from glob import glob
+from random import randint
+from ast import literal_eval
 
 def createPRTs(**kwargs):
     for key in kwargs:
