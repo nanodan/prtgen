@@ -14,8 +14,6 @@ def createPRTs(**kwargs):
             experimentName = kwargs[key]
         elif key == 'path':
             loaded_path = kwargs[key]
-        elif key == 'color_config_exists':
-            color_config_exists = kwargs[key]
         elif key == 'colors_config':
             colors_config = kwargs[key]
         elif key == 'object_id':
@@ -65,6 +63,12 @@ def createPRTs(**kwargs):
                 modelErrorSeparately = 'no'
         elif key == 'grouping_input':
             groupingKeywords = kwargs[key]
+            if type(groupingKeywords) is not list:
+                groupingKeywords = groupingKeywords.split(',')
+                groupingKeywords = [x.strip(' ') for x in groupingKeywords]
+        elif key == 'grouping_input2':
+            groupingLevelTwoName = kwargs[key]
+            groupingLevelTwo = True
         elif key == 'seperrorswitch':
             if kwargs[key]:
                 groupError = 'yes'
@@ -79,10 +83,17 @@ def createPRTs(**kwargs):
                 gaps = 'no'
         elif key == 'gapcolnames_input':
             gapColumns = kwargs[key]
+            if type(gapColumns) is not list:
+                gapColumns = gapColumns.split(',')
+                gapColumns = [x.strip(' ') for x in gapColumns]
         elif key == 'gapname_input':
             gapName = kwargs[key]
         elif key == 'csv_files':
             CSVfiles = kwargs[key]
+        elif key == 'mains':
+            mains = kwargs[key]
+        elif key == 'config_file':
+            config_file = kwargs[key]
         else:
             pass
             
@@ -97,11 +108,44 @@ def createPRTs(**kwargs):
     else:
         doGrouping = True
 
+    if 'mains' not in locals():
+        mains = False
+    
+    if 'groupingLevelTwoName' not in locals():
+        groupingLevelTwoName = []
+        
+    if 'groupingLevelTwo' not in locals():
+        groupingLevelTwo = False
+
     # =============================================================================
     modelSeparately = 'no'
     modelSeparatelyGroupNames = []
         
-    columns = [conditionColumnName, trialColumnName] + errorColumnName + onsetTimeNames
+    if type(conditionColumnName) is not list:
+        conditionColumnName_l = [conditionColumnName]
+    else:
+        conditionColumnName_l = conditionColumnName
+    if type(trialColumnName) is not list:
+        trialColumnName_l = [trialColumnName]
+    else:
+        trialColumnName_l = trialColumnName
+    if type(errorColumnName) is not list:
+        errorColumnName_l = [errorColumnName]
+    else:
+        errorColumnName_l = errorColumnName
+    if onsetTimeNames is not list:
+        onsetTimeNames_l = onsetTimeNames.split(',')
+        onsetTimeNames_l = [x.strip(' ') for x in onsetTimeNames_l]
+    else:
+        onsetTimeNames_l = onsetTimeNames
+    if groupingLevelTwoName is not list:
+        groupingLevelTwoName_l = groupingLevelTwoName.strip(' ')
+        groupingLevelTwoName_l = [groupingLevelTwoName_l]
+    else:
+        groupingLevelTwoName_l = [groupingLevelTwoName]
+        
+    columns = conditionColumnName_l + trialColumnName_l + errorColumnName_l + onsetTimeNames_l + groupingLevelTwoName_l
+
     if parametricDesign == 'yes':
         columns += [stimuliColumnName]
         stimuliWeights['none'] = ''
@@ -122,7 +166,8 @@ def createPRTs(**kwargs):
     baselineTime = []
     totIter = len(CSVfiles)
     currentIter = 0.0
-    parent_object.complete_label.text = 'Loading CSV Files'
+    if not mains:
+        parent_object.complete_label.text = 'Loading CSV Files'
 
     for file in CSVfiles:
         currentIter += 1
@@ -146,7 +191,8 @@ def createPRTs(**kwargs):
         
         dataframes.append(df)
         ratio = currentIter/totIter * 100
-        parent_object.my_prbar.bar_value = ratio
+        if not mains:
+            parent_object.my_prbar.bar_value = ratio
         
     for index,dataframe in enumerate(dataframes):
         dataframes[index][conditionColumnName].fillna(dataframe[trialColumnName],inplace=True)
@@ -160,10 +206,9 @@ def createPRTs(**kwargs):
             dataframe[stimuliColumnName].fillna('',inplace=True)
             dataframe['uniqueCombinedName'] = dataframe[trialColumnName].astype(str) + ' ' + dataframe[conditionColumnName].astype(str) + ' ' + dataframe[stimuliColumnName].astype(str)
             dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),'uniqueCombinedName'] = dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),trialColumnName].astype(str) + ' ' + dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),conditionColumnName].astype(str)
-    
+
     uniqueNames = {tName for tName in dataframes[0]['uniqueCombinedName']}
-    print uniqueNames
-    
+
     replacementNames = {}
     newNames = set()
     if doGrouping:
@@ -173,25 +218,28 @@ def createPRTs(**kwargs):
                     replacementNames[name] = tempNameGroup
                     newNames.add(tempNameGroup)
                     break
-    
+
     originalNames = set()
     for name in uniqueNames:
         if name not in replacementNames.keys():
             originalNames.add(name)
             
-
     for dataindex,dataframe in enumerate(dataframes):
         for key, value in replacementNames.iteritems():
-            mask = dataframe['uniqueCombinedName'] == key
-            dataframe.loc[mask, 'uniqueCombinedName'] = value
+            if not groupingLevelTwo:
+                mask = dataframe['uniqueCombinedName'] == key
+                dataframe.loc[mask, 'uniqueCombinedName'] = value
+            else:
+                mask = dataframe['uniqueCombinedName'] == key
+                dataframe.loc[mask, 'uniqueCombinedName'] = value + ' - ' + dataframe.loc[mask, groupingLevelTwoName]
 
-    uniqueNames = newNames.union(originalNames)
-    
+    uniqueNames = list(dataframes[0]['uniqueCombinedName'].unique())
+
     uniqueNamesNoNull = {name for name in uniqueNames if nullConditionName.lower() not in name.lower()}
     if includeNull.lower() == 'no':
         uniqueNames = uniqueNamesNoNull
-       
-    if color_config_exists:
+
+    if len(colors_config) != 0:
         RGBCollection = colors_config
         configExist = True
     else:
@@ -199,60 +247,50 @@ def createPRTs(**kwargs):
 
     totIter = len(dataframes)
     currentIter = 0.0
-    parent_object.complete_label.text = 'Creating PRT Files'
-    ratio = currentIter/totIter * 100
-    parent_object.my_prbar.bar_value = ratio
+    if not mains:
+        parent_object.complete_label.text = 'Creating PRT Files'
+        ratio = currentIter/totIter * 100
+        parent_object.my_prbar.bar_value = ratio
     
     
     uniqueConditionsMaster = []
-    for dataindex,dataframe in enumerate(dataframes):
-        #uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
+    for dataindex, dataframe in enumerate(dataframes):
+        uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
+
         blockDataframes = []
         for key in uniqueNames:
             appBlock = False
             tempdf = dataframe.loc[dataframe['uniqueCombinedName'] == key]
-            tempdf = tempdf.dropna(axis=1,how='all')
-            
+            tempdf = tempdf.dropna(axis=1, how='all')
+
             nanOnsetTempMerge = pd.DataFrame()
             for column in tempdf.columns:
                 if 'OnsetTime' in re.split('\.|\[',column):
                     tDat = tempdf[column]
                     nanOnsetTempMerge[column] = tDat
-            nanOnsetTempMerge['OnsetTime'] = nanOnsetTempMerge.sum(axis=1) 
-            nanOnsetTempMerge = nanOnsetTempMerge.dropna(axis=1)
+            nanOnsetTempMerge['OnsetTime'] = nanOnsetTempMerge.sum(axis=1)
+            nanOnsetTempMerge = nanOnsetTempMerge.dropna(axis=1, how='all')
             for column in tempdf.columns:
                 if 'OnsetTime' in re.split('\.|\[',column):
-                    tempdf = tempdf.drop(column,1)
+                    tempdf = tempdf.drop(column, 1)
                     try:
-                        nanOnsetTempMerge = nanOnsetTempMerge.drop(column,1)
+                        nanOnsetTempMerge = nanOnsetTempMerge.drop(column, 1)
                     except:
                         pass
 
-            tempdf['OnsetTime'] = nanOnsetTempMerge
-            tempdf = tempdf.dropna(axis=0,thresh=2)
-            tempdf = tempdf.reset_index()
+            if not nanOnsetTempMerge.empty:
+                tempdf['OnsetTime'] = nanOnsetTempMerge
+                tempdf = tempdf.dropna(axis=0, how='any', subset=['OnsetTime'])
+                tempdf = tempdf.reset_index()
 
-            for column in tempdf.columns:
-                try:
-                    if tempdf[column].isnull().any() and column != stimuliColumnName:
-                        tempdf = tempdf.drop(column,axis=1)
-                except:
+                for column in tempdf.columns:
                     if tempdf[column].isnull().any():
                         tempdf = tempdf.drop(column,axis=1)
-            tempdf = tempdf.reset_index(drop = True)
-            for column in tempdf.columns:
-                if 'OnsetTime' in re.split('\.|\[',column):
-                    appBlock = True
-            if appBlock and not tempdf.empty:
-                if parametricDesign.lower() == 'yes':
-                    if stimuliColumnName in tempdf.columns.values:
-                        blockDataframes.append(tempdf)
-                    else:
-                        tempdf[stimuliColumnName] = 'none'
-                        blockDataframes.append(tempdf)
-                else:
-                    blockDataframes.append(tempdf)
-        f = open(PRTfilenames[dataindex],'w')
+                tempdf = tempdf.reset_index(drop = True)
+            
+                blockDataframes.append(tempdf)
+
+        f = open(PRTfilenames[dataindex], 'w')
         
         if modelErrorSeparately == 'yes':
             newNames = []
@@ -385,8 +423,7 @@ def createPRTs(**kwargs):
             uniqueConditionsMaster = uniqueConditionsMaster + list(uniqueConditions)
            
             for cond in uniqueConditions:
-                if cond != nullConditionName:
-                    #tempdf = block.loc[block[conditionColumnName] == cond]
+                if (cond != nullConditionName) or (includeNull == 'yes'):
                     tempdf = block.loc[block['uniqueCombinedName'] == cond]
                     
                     if  dataindex==0 and not configExist:
@@ -489,22 +526,6 @@ def createPRTs(**kwargs):
                         else:
                             f.write('\n')
                     f.write('\n' + 'Color: ' + str(R) + ' ' + str(G) + ' ' + str(B) + '\n')
-                else:
-                    if includeNull == 'yes':
-                        f.write('\n' + block['uniqueCombinedName'][0])
-                        f.write('\n')
-                        f.write(str(len(tempdf.index)))
-                        f.write('\n\n')
-                        onsetColumn = [x for x in block.columns if 'OnsetTime' in x.split('.')][0]
-                        tempdf = block.loc[block[conditionColumnName] == cond]
-                        for index, row in tempdf.iterrows():
-                            outputOnset = int(row[onsetColumn] - baselineTime[dataindex])
-                            outputOffset = int(outputOnset + trialDuration[0])
-                            if parametricDesign == 'yes' and modelSeparately == 'no':
-                                f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + stimuliWeights[row[stimuliColumnName]] + '\n')
-                            else:
-                                f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + '\n')
-                        f.write('\n' + 'Color: ' + str(R) + ' ' + str(G) + ' ' + str(B) + '\n')
         
         if (modelErrorSeparately.lower() == 'yes') and (groupError.lower() == 'yes') and 'Errors' not in uniqueConditionsP:
             if not configExist:
@@ -534,18 +555,32 @@ def createPRTs(**kwargs):
                 
         currentIter += 1
         ratio = currentIter/totIter * 100
-        parent_object.my_prbar.bar_value = ratio
+        if not mains:
+            parent_object.my_prbar.bar_value = ratio
                 
         f.close()
     
     if not configExist:
-        f = open(loaded_path,'r')
+        f = open(config_file,'r')
         dataJSON = json.load(f)
         dataJSON['colors_config'] = RGBCollection
         f.close()
-        f = open(loaded_path,'w')
+        f = open(config_file,'w')
         f.write(json.dumps(dataJSON))
         f.close()
         
-    parent_object.complete_label.text = 'Done!'
-    parent_object.sub_box.ids.closebutton.disabled = False
+    if not mains:
+        parent_object.complete_label.text = 'Done!'
+        parent_object.sub_box.ids.closebutton.disabled = False
+    
+if __name__ == '__main__':
+    import json
+    import threading
+    with open('test.json', 'r') as fp:
+        vard = json.load(fp)
+    vard['path'] = './'
+    vard['csv_files'] = ['./test.csv']
+    vard['mains'] = True
+    vard['config_file'] = './test.json'
+    thread = threading.Thread(target=createPRTs, kwargs=vard)
+    thread.start()
