@@ -318,6 +318,9 @@ class FilePopup(Popup):
                 elif key == 'grouping_input':
                     dataJSON[key] = dataJSON[key].split(',')
                     dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                elif key == 'grouping_input2':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
             dataPath = self.ids.mainchooser.selection[0]
             csvFiles = glob.glob(dataPath + '\\*.csv')
             dataJSON['csv_files'] = csvFiles
@@ -370,6 +373,7 @@ class ProcessScreen(Screen):
         self.ids.process_layout.add_widget(self.sub_box)
         
         self.config_parameters['path'] = loaded_path
+        self.config_parameters['config_path'] = loaded_path
     def on_enter(self):
         self.config_parameters['object_id'] = self
         prt_thread = threading.Thread(target=prtscript.createPRTs, kwargs=self.config_parameters)
@@ -466,6 +470,9 @@ class BigButton(Button):
                     dataJSON[key] = dataJSON[key].split(',')
                     dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
                 elif key == 'grouping_input':
+                    dataJSON[key] = dataJSON[key].split(',')
+                    dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
+                elif key == 'grouping_input2':
                     dataJSON[key] = dataJSON[key].split(',')
                     dataJSON[key] = [x.strip(' ') for x in dataJSON[key]]
             dataPath = dataPath

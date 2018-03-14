@@ -419,7 +419,7 @@
             orientation: 'horizontal'
             PadLayout:
                 orientation:'vertical'
-                spacing: 0
+                spacing: 5
                 InputLabel:
                     text:'Grouping Keywords'
                 PadLayout:
@@ -438,10 +438,10 @@
                     orientation: 'horizontal'
                     InputSwitch:
                         id: groupingswitch
-                        size_hint: None,None
+                        size_hint: None, None
                         height: 50
                         width: 75
-                        on_active: self.disable(target1=grouping_input,target2=groupingswitch)
+                        on_active: self.disable(target1=grouping_input)
                     BasicInput:
                         id: grouping_input
                         tooltiptext: 'Enter a list of each of the keywords to be found in condition and trial column names that you want to use as the basis for grouping conditions together (separate with a comma)'
@@ -453,7 +453,38 @@
                 Label:
             PadLayout:
                 orientation:'vertical'
-                spacing: 0
+                spacing: 5
+                InputLabel:
+                    text:'Secondary Column Grouping'
+                PadLayout:
+                    orientation: 'horizontal'
+                    InputLabel:
+                        size_hint: None,None
+                        width: 75
+                        halign: 'center'
+                        text_size: self.size
+                        text: 'Secondary Group'
+                    InputLabel:
+                        text: 'Column Name'
+                        text_size: self.size
+                        halign: 'center'
+                PadLayout:
+                    orientation: 'horizontal'
+                    InputSwitch:
+                        id: groupingswitch2
+                        size_hint: None, None
+                        height: 50
+                        width: 75
+                        on_active: self.disable(target1=grouping_input2)
+                    BasicInput:
+                        id: grouping_input2
+                        tooltiptext: 'Enter the name of the column to be used for a secondary level of grouping'
+                        disabled: True
+                Label:
+                Label:
+                Label:
+                Label:
+                Label:
                 
 <ButtonTab>:
     background_normal: 'atlas://defaulttheme/button'
