@@ -373,7 +373,7 @@ class ProcessScreen(Screen):
         self.ids.process_layout.add_widget(self.sub_box)
         
         self.config_parameters['path'] = loaded_path
-        self.config_parameters['config_path'] = loaded_path
+        self.config_parameters['config_file'] = loaded_path
     def on_enter(self):
         self.config_parameters['object_id'] = self
         prt_thread = threading.Thread(target=prtscript.createPRTs, kwargs=self.config_parameters)
@@ -437,7 +437,6 @@ class BigButton(Button):
                 if key == 'colors_config':
                     ScrnMgr.config = dataJSON[key]
         else:
-            print('yes', self.file_path)
             dataJSON = {}
             for key, value in ScrnMgr.children[0].ids.settab.ids.items():
                 if '_input' in key:

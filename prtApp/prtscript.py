@@ -133,16 +133,17 @@ def createPRTs(**kwargs):
         errorColumnName_l = [errorColumnName]
     else:
         errorColumnName_l = errorColumnName
-    if onsetTimeNames is not list:
+    if type(onsetTimeNames) is not list:
         onsetTimeNames_l = onsetTimeNames.split(',')
         onsetTimeNames_l = [x.strip(' ') for x in onsetTimeNames_l]
     else:
         onsetTimeNames_l = onsetTimeNames
-    if groupingLevelTwoName is not list:
-        groupingLevelTwoName_l = groupingLevelTwoName.strip(' ')
+    if type(groupingLevelTwoName) is not list:
+        groupingLevelTwoName_l = str(groupingLevelTwoName.strip(' '))
         groupingLevelTwoName_l = [groupingLevelTwoName_l]
     else:
-        groupingLevelTwoName_l = [groupingLevelTwoName]
+        groupingLevelTwoName_l = [str(groupingLevelTwoName[0])]
+        groupingLevelTwoName = str(groupingLevelTwoName[0])
         
     columns = conditionColumnName_l + trialColumnName_l + errorColumnName_l + onsetTimeNames_l + groupingLevelTwoName_l
 
