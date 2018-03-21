@@ -259,7 +259,7 @@ def createPRTs(**kwargs):
         uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
 
         blockDataframes = []
-        for key in uniqueNames:
+        for key in sorted(uniqueNames):
             appBlock = False
             tempdf = dataframe.loc[dataframe['uniqueCombinedName'] == key]
             tempdf = tempdf.dropna(axis=1, how='all')
