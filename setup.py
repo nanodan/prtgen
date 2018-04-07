@@ -47,3 +47,5 @@ elif platform == 'darwin':
     os.system('echo ====================================')
     os.system('echo Installation Complete')
     os.system('echo ====================================')
+    os.system('sleep 5')
+    os.system('exit')
