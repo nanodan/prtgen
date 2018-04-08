@@ -15,7 +15,7 @@ if platform == 'win32':
     os.system('echo ====================================')
     os.system('echo Installing Requirements')
     os.system('echo ====================================')
-    os.system('activate venv-prtgen & python -m pip install --upgrade pip & pip install -r ./requirements/requirements.txt')
+    os.system('activate venv-prtgen & python -m pip install --upgrade pip & pip install -r ./requirements/requirements.txt & conda install pandas typing')
     os.system('deactivate venv-prtgen')
     os.system('echo ====================================')
     os.system('echo Installation Complete')
