@@ -128,22 +128,32 @@ class SavePop(Popup):
             pass
     def save_data(self):
         global loaded_path
-        
+
         if not self.ids.jsonsavename.text:
             tempPop = ErrPop()
             tempPop.open()
         else:
             configOut = {}
             dataPath = self.ids.mainchooser.path
-            
+
             for object_key, object_val in self.root['settab'].ids.items():
                 if 'input' in object_key:
                     if object_val.text:
-                        outputText = object_val.text
-                        configOut[object_key] = outputText
+                        if object_key == 'parametricweights_input':
+                            outputText = object_val.split('\n')
+                            outputText = [x.strip(' ') for x in outputText]
+                            outputText2 = {}
+                            for weightV in outputText:
+                                tempSplit = weightV.split(':')
+                                tempSplit = [x.strip(' ') for x in weightV]
+                                outputText2[tempSplit[0]] = int(tempSplit[1])
+                            outputText = outputText2
+                        else:
+                            outputText = object_val.text
+                            configOut[object_key] = outputText
                 if 'switch' in object_key:
                     configOut[object_key] = object_val.active
-            
+
             jsonOut = json.dumps(configOut)
             titleout = self.ids.jsonsavename.text   
             f = open(os.path.join(dataPath, titleout + '.json'), 'w+')
@@ -151,16 +161,16 @@ class SavePop(Popup):
             f.write(jsonOut)
             f.close()
             self.dismiss()
-        
+
 class CoreLabel(Label):
     pass
 
 class SettingsTab(TabbedPanel):
     pass
-    
+
 class Tooltip(Label):
     pass
-    
+
 class BasicInput(TextInput):
     tooltipExists = NumericProperty(0)
     tooltiptext = StringProperty()
@@ -428,8 +438,14 @@ class BigButton(Button):
             ScrnMgr.current = 'ConfigScreen'
             for key,value in ScrnMgr.children[0].ids.settab.ids.items():
                 if '_input' in key:
-                    if key in dataJSON:
-                        value.text = dataJSON[key]
+                    if key in dataJSON: 
+                        if type(dataJSON[key]) == dict:
+                            tempSTR = ''
+                            for key, valued in dataJSON[key].iteritems():
+                                tempSTR += str(key) + ': ' + str(valued) + '\n'
+                            value.text = tempSTR
+                        else:
+                            value.text = dataJSON[key]
                 if 'switch' in key:
                     if key in dataJSON:
                         value.active = dataJSON[key]

@@ -133,16 +133,20 @@ def createPRTs(**kwargs):
         errorColumnName_l = [errorColumnName]
     else:
         errorColumnName_l = errorColumnName
-    if onsetTimeNames is not list:
+    if type(onsetTimeNames) is not list:
         onsetTimeNames_l = onsetTimeNames.split(',')
         onsetTimeNames_l = [x.strip(' ') for x in onsetTimeNames_l]
     else:
         onsetTimeNames_l = onsetTimeNames
-    if groupingLevelTwoName is not list:
-        groupingLevelTwoName_l = groupingLevelTwoName.strip(' ')
+    if type(groupingLevelTwoName) is not list:
+        groupingLevelTwoName_l = str(groupingLevelTwoName.strip(' '))
         groupingLevelTwoName_l = [groupingLevelTwoName_l]
     else:
-        groupingLevelTwoName_l = [groupingLevelTwoName]
+        if len(groupingLevelTwoName) > 0:
+            groupingLevelTwoName_l = [str(groupingLevelTwoName[0])]
+            groupingLevelTwoName = str(groupingLevelTwoName[0])
+        else:
+            groupingLevelTwoName_l = []
         
     columns = conditionColumnName_l + trialColumnName_l + errorColumnName_l + onsetTimeNames_l + groupingLevelTwoName_l
 
@@ -188,7 +192,6 @@ def createPRTs(**kwargs):
         if jitter == 'no':
             df['jitter'] = pd.Series(0, index=df.index)
             jitterColumnName = 'jitter'
-        
         dataframes.append(df)
         ratio = currentIter/totIter * 100
         if not mains:
@@ -208,7 +211,6 @@ def createPRTs(**kwargs):
             dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),'uniqueCombinedName'] = dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),trialColumnName].astype(str) + ' ' + dataframe.ix[dataframe[conditionColumnName].isin(modelSeparatelyGroupNames),conditionColumnName].astype(str)
 
     uniqueNames = {tName for tName in dataframes[0]['uniqueCombinedName']}
-
     replacementNames = {}
     newNames = set()
     if doGrouping:
@@ -256,13 +258,15 @@ def createPRTs(**kwargs):
     uniqueConditionsMaster = []
     for dataindex, dataframe in enumerate(dataframes):
         uniqueNames = {tName for tName in dataframe['uniqueCombinedName']}
-
         blockDataframes = []
         for key in sorted(uniqueNames):
             appBlock = False
             tempdf = dataframe.loc[dataframe['uniqueCombinedName'] == key]
             tempdf = tempdf.dropna(axis=1, how='all')
-
+            try:
+                holdV = tempdf[stimuliColumnName]
+            except KeyError:
+                tempdf[stimuliColumnName] = 'none'
             nanOnsetTempMerge = pd.DataFrame()
             for column in tempdf.columns:
                 if 'OnsetTime' in re.split('\.|\[',column):
@@ -421,8 +425,6 @@ def createPRTs(**kwargs):
             uniqueConditions = {cond for cond in block['uniqueCombinedName']}
 
             uniqueConditionsMaster = uniqueConditionsMaster + list(uniqueConditions)
-           
-            print uniqueConditions
             for cond in uniqueConditions:
                 if (cond != nullConditionName) or (includeNull == 'yes'):
                     tempdf = block.loc[block['uniqueCombinedName'] == cond]
@@ -516,10 +518,10 @@ def createPRTs(**kwargs):
 
                             if parametricDesign == 'yes' and modelSeparately == 'no':
                                 try:
-                                    f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + stimuliWeights[str(row[stimuliColumnName])] + '\n')
+                                    f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + str(stimuliWeights[str(row[stimuliColumnName])]) + '\n')
                                 except KeyError:
                                     try:
-                                        f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + stimuliWeights[str(int(row[stimuliColumnName]))] + '\n')
+                                        f.write(str(outputOnset) + ' ' + str(outputOffset+jitterVal) + ' ' + str(stimuliWeights[int(row[stimuliColumnName])]) + '\n')
                                     except KeyError:
                                         raise ValueError("Stimuli weighting does not exist")
                             else:
@@ -577,11 +579,11 @@ def createPRTs(**kwargs):
 if __name__ == '__main__':
     import json
     import threading
-    with open('test.json', 'r') as fp:
+    with open('../../prt_examples/BECKYaa.json', 'r') as fp:
         vard = json.load(fp)
-    vard['path'] = './'
-    vard['csv_files'] = ['./test.csv']
+    vard['path'] = '../../prt_examples/output'
+    vard['csv_files'] = ['../../prt_examples/output/example_fix.csv']
     vard['mains'] = True
-    vard['config_file'] = './test.json'
+    vard['config_file'] = '../../prt_examples/BECKYaa.json'
     thread = threading.Thread(target=createPRTs, kwargs=vard)
     thread.start()
