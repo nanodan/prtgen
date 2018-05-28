@@ -146,6 +146,7 @@ class SavePop(Popup):
                             for weightV in outputText:
                                 tempSplit = weightV.split(':')
                                 tempSplit = [x.strip(' ') for x in tempSplit]
+                                print(tempSplit)
                                 outputText2[tempSplit[0]] = int(tempSplit[1])
                             outputText = outputText2
                         else:
@@ -441,9 +442,9 @@ class BigButton(Button):
                     if key in dataJSON: 
                         if type(dataJSON[key]) == dict:
                             tempSTR = ''
-                            for key, valued in dataJSON[key].iteritems():
-                                tempSTR += str(key) + ': ' + str(valued) + '\n'
-                            value.text = tempSTR
+                            for key2, valued in dataJSON[key].iteritems():
+                                tempSTR += str(key2) + ': ' + str(valued) + '\n'
+                            value.text = tempSTR.strip('\n')
                         else:
                             value.text = dataJSON[key]
                 if 'switch' in key:
