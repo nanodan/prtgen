@@ -140,12 +140,12 @@ class SavePop(Popup):
                 if '_input' in object_key:
                     if object_val.text:
                         if object_key == 'parametricweights_input':
-                            outputText = object_val.split('\n')
+                            outputText = object_val.text.split('\n')
                             outputText = [x.strip(' ') for x in outputText]
                             outputText2 = {}
                             for weightV in outputText:
                                 tempSplit = weightV.split(':')
-                                tempSplit = [x.strip(' ') for x in weightV]
+                                tempSplit = [x.strip(' ') for x in tempSplit]
                                 outputText2[tempSplit[0]] = int(tempSplit[1])
                             outputText = outputText2
                         else:
