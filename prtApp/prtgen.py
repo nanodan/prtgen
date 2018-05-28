@@ -137,7 +137,7 @@ class SavePop(Popup):
             dataPath = self.ids.mainchooser.path
 
             for object_key, object_val in self.root['settab'].ids.items():
-                if 'input' in object_key:
+                if '_input' in object_key:
                     if object_val.text:
                         if object_key == 'parametricweights_input':
                             outputText = object_val.split('\n')
