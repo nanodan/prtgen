@@ -87,8 +87,7 @@ from os.path import join, isdir
 
 import prtscript
 import threading
-from desktop_file_dialogs import Desktop_FolderDialog
-from desktop_file_dialogs import Desktop_FileDialog, FileGroup
+from desktop_file_dialogs import Desktop_FolderDialog, Desktop_SaveFile_Dialog, Desktop_FileDialog, FileGroup
 
 # Application
 # =============================================================================
@@ -134,6 +133,7 @@ class SavePop(Popup):
             tempPop.open()
         else:
             configOut = {}
+        
             dataPath = self.ids.mainchooser.path
 
             for object_key, object_val in self.root['settab'].ids.items():
@@ -146,9 +146,9 @@ class SavePop(Popup):
                             for weightV in outputText:
                                 tempSplit = weightV.split(':')
                                 tempSplit = [x.strip(' ') for x in tempSplit]
-                                print(tempSplit)
                                 outputText2[tempSplit[0]] = int(tempSplit[1])
                             outputText = outputText2
+                            configOut[object_key] = outputText
                         else:
                             outputText = object_val.text
                             configOut[object_key] = outputText
@@ -400,10 +400,53 @@ class BigButton(Button):
     def back(self, ScrnMgr):
         ScrnMgr.transition = SlideTransition(direction='right', duration=0.4)
         ScrnMgr.current = ScrnMgr.previous()
+    def save_data(self, savepath):
+        configOut = {}
+    
+        dataPath = savepath
+
+        for object_key, object_val in self.parent.parent.parent.ids.settab.ids.items():
+            if '_input' in object_key:
+                if object_val.text:
+                    if object_key == 'parametricweights_input':
+                        outputText = object_val.text.split('\n')
+                        outputText = [x.strip(' ') for x in outputText]
+                        outputText2 = {}
+                        for weightV in outputText:
+                            tempSplit = weightV.split(':')
+                            tempSplit = [x.strip(' ') for x in tempSplit]
+                            outputText2[tempSplit[0]] = int(tempSplit[1])
+                        outputText = outputText2
+                        configOut[object_key] = outputText
+                    else:
+                        outputText = object_val.text
+                        configOut[object_key] = outputText
+            if 'switch' in object_key:
+                configOut[object_key] = object_val.active
+
+        jsonOut = json.dumps(configOut)
+        f = open(savepath, 'w+')
+        loaded_path = savepath
+        f.write(jsonOut)
+        f.close()
     def save_config(self):
+        self.savepath = None
+            
         filepath = os.getcwd()
-        tempPop = SavePop(parentval=self.parent.parent.parent.ids, path=filepath)
-        tempPop.open()
+        fd = Desktop_SaveFile_Dialog(
+            title = "Save Config File",
+            initial_directory = filepath,
+            on_accept = lambda file_path: self.setattrs_save(file_path),
+            file_groups = [
+                FileGroup(name="JSON Files", extensions=["json"]),
+                FileGroup.All_FileTypes,
+            ],
+        )
+        fd.show()
+        self.save_data(self.savepath)
+
+    def setattrs_save(self, filepath):
+        setattr(self, 'savepath', filepath)
     def setattrs(self, filepath):
         setattr(self, 'file_path', filepath)
         setattr(self, 'proceed', True)
