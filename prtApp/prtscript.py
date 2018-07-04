@@ -380,7 +380,7 @@ def createPRTs(**kwargs):
             condForPrint = len(blockDataframes) + 1
         else:
             condForPrint = len(blockDataframes)
-        condForPrintNoNull = condForPrint
+        condForPrintNoNull = len(uniqueNamesNoNull)
         f.write('ResolutionOfTime:   msec\n\n')
         f.write('Experiment:         ' + experimentName + '\n\n')
         f.write('BackgroundColor:    0 0 0\n')
