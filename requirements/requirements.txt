@@ -10,7 +10,7 @@ kivy.deps.sdl2==0.1.17
 numpy==1.13.1
 pandas==0.20.3
 pygame==1.9.3
-Pygments==2.2.0
+Pygments==2.7.4
 pypiwin32==223
 python-dateutil==2.6.1
 pytz==2017.2
